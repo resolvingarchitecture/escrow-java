@@ -1,4 +1,5 @@
-# RA Escrow
+# Escrow Service
+A general configurable Escrow Service.
 
 ## Entities
 * Offer - An offer to buy or sell BTC with instructions

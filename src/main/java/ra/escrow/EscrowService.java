@@ -23,28 +23,19 @@ public class EscrowService extends BaseService {
     public static final String OPERATION_GET_STATS = "GET_STATS";
     public static final String OPERATION_GET_STATUS = "GET_STATUS";
 
-    // Buy
-    public static final String OPERATION_SUBMIT_BUY_OFFER = "SUBMIT_BUY_OFFER"; // (1)
-    public static final String OPERATION_CHECK_BUY_OFFER_STATUS = "CHECK_BUY_OFFER_STATUS"; // (2)
-    public static final String OPERATION_ACCEPT_SELL_OFFER = "ACCEPT_SELL_OFFER"; // (3)
-    public static final String OPERATION_SETTLE_INSTRUCTIONS = "SETTLE_INSTRUCTIONS"; // (4)
-    public static final String OPERATION_VERIFY_FUNDS = "VERIFY_FUNDS"; // (5)
+    // Offer
+    public static final String OPERATION_SUBMIT_OFFER = "SUBMIT_OFFER"; // (1, 2)
+    public static final String OPERATION_CHECK_OFFER_STATUS = "CHECK_OFFER_STATUS"; // (3)
+    public static final String OPERATION_ACCEPT_OFFER = "ACCEPT_OFFER"; // (4)
 
-    // Sell
-    public static final String OPERATION_SUBMIT_SELL_OFFER = "SUBMIT_SELL_OFFER"; // (1)
-    public static final String OPERATION_CHECK_SELL_OFFER_STATUS = "CHECK_SELL_OFFER_STATUS"; // (2)
-    public static final String OPERATION_FUND_ESCROW = "FUND_ESCROW"; // (3)
-    public static final String OPERATION_INSTRUCTIONS_SETTLED = "INSTRUCTIONS_SETTLED"; // (4)
-    public static final String OPERATION_VERIFY_ESCROW_CLOSED = "VERIFY_ESCROW_CLOSED"; // (5)
+    // Escrow
+    public static final String OPERATION_FUND_ESCROW = "FUND_ESCROW"; // (5)
+    public static final String OPERATION_INSTRUCTIONS_SETTLED = "INSTRUCTIONS_SETTLED"; // (6)
+    public static final String OPERATION_SETTLEMENT_VERIFIED = "SETTLEMENT_VERIFIED"; // (7)
 
     // Admin
     public static final String OPERATION_SET_STATIC_ESCROW_ACCOUNT = "SET_STATIC_ESCROW_ACCOUNT";
-    public static final String OPERATION_GET_ESCROWS = "GET_ESCROWS";
     public static final String OPERATION_CLOSE_ESCROW = "CLOSE_ESCROW";
-    public static final String OPERATION_GET_DISTRIBUTABLE_REVENUE = "GET_DISTRIBUTABLE_REVENUE";
-    public static final String OPERATION_DISTRIBUTE_REVENUE = "DISTRIBUTE_REVENUE";
-    public static final String OPERATION_PAUSE = "PAUSE";
-    public static final String OPERATION_UNPAUSE = "UNPAUSE";
 
     private Config config;
     private InfoVaultDB infoVaultDB;
@@ -67,23 +58,14 @@ public class EscrowService extends BaseService {
             case OPERATION_SET_CONFIG:{setConfig(e);break;}
             case OPERATION_GET_STATS:{getStats(e);break;}
             case OPERATION_GET_STATUS: {getStatus(e);break;}
-            case OPERATION_SUBMIT_BUY_OFFER:{submitBuyOffer(e);break;}
-            case OPERATION_CHECK_BUY_OFFER_STATUS:{checkBuyOfferStatus(e);break;}
-            case OPERATION_CHECK_SELL_OFFER_STATUS:{checkSellOfferStatus(e);break;}
-            case OPERATION_ACCEPT_SELL_OFFER:{acceptSellOffer(e);break;}
-            case OPERATION_SETTLE_INSTRUCTIONS:{settleInstructions(e);break;}
-            case OPERATION_VERIFY_FUNDS:{verifyFunds(e);break;}
-            case OPERATION_SUBMIT_SELL_OFFER:{submitSellOffer(e);break;}
+            case OPERATION_SUBMIT_OFFER:{submitOffer(e);break;}
+            case OPERATION_CHECK_OFFER_STATUS:{checkOfferStatus(e);break;}
+            case OPERATION_ACCEPT_OFFER:{acceptOffer(e);break;}
             case OPERATION_FUND_ESCROW:{fundEscrow(e);break;}
             case OPERATION_INSTRUCTIONS_SETTLED:{instructionsSettled(e);break;}
-            case OPERATION_VERIFY_ESCROW_CLOSED:{verifyEscrowClosed(e);break;}
+            case OPERATION_SETTLEMENT_VERIFIED:{settlementVerified(e);break;}
             case OPERATION_SET_STATIC_ESCROW_ACCOUNT:{setStaticEscrowAccount(e);break;}
-            case OPERATION_GET_ESCROWS:{getEscrows(e);break;}
             case OPERATION_CLOSE_ESCROW:{closeEscrow(e);break;}
-            case OPERATION_GET_DISTRIBUTABLE_REVENUE:{getDistributableRevenue(e);break;}
-            case OPERATION_DISTRIBUTE_REVENUE:{distributeRevenue(e);break;}
-            case OPERATION_PAUSE:{pause();break;}
-            case OPERATION_UNPAUSE:{unpause();break;}
             default: {
                 LOG.warning("Unsupported Operation: "+r.getOperation());
                 e.getMessage().addErrorMessage("Unsupported Operation: "+r.getOperation());
@@ -131,7 +113,7 @@ public class EscrowService extends BaseService {
      * Step 1: Make Buy Offer
      * @param e
      */
-    private void submitBuyOffer(Envelope e) {
+    private void submitOffer(Envelope e) {
         Offer buyOffer = new Offer();
         buyOffer.fromMap(DLC.getValues(e));
 
@@ -151,7 +133,7 @@ public class EscrowService extends BaseService {
      * (latitude/longitude not set).
      * @param e
      */
-    private void checkBuyOfferStatus(Envelope e) {
+    private void checkOfferStatus(Envelope e) {
 
         Offer buyOffer = new Offer();
         buyOffer.fromMap(DLC.getValues(e));
@@ -183,7 +165,7 @@ public class EscrowService extends BaseService {
      * Step 3: Accept Sell Offer locking in Escrow
      * @param e
      */
-    private void acceptSellOffer(Envelope e) {
+    private void acceptOffer(Envelope e) {
         Integer buyOfferId = (Integer)DLC.getValue("buyOfferId", e);
         Integer sellOfferId = (Integer)DLC.getValue("sellOfferId", e);
 
@@ -206,56 +188,10 @@ public class EscrowService extends BaseService {
         escrow.sellOfferId = sellOfferId;
         escrow.currency = offer.currency;
         escrow.amount = offer.amount;
-        // Must set Escrow Address via Admin prior to use
+        // Must set Escrow Address via seed prior to use
 //        escrow.escrowAddress = config.escrowAddress;
 //        escrow.senderAddress = sellOffer.
 
-    }
-
-    private void settleInstructions(Envelope e) {
-
-
-        InfoVault infoVault = new InfoVault();
-    }
-
-    private void verifyFunds(Envelope e) {
-        String escrowId = (String)DLC.getValue("escrowId", e);
-
-        InfoVault infoVault = new InfoVault();
-    }
-
-    /**
-     * Sell BTC
-     * Step 1: Submit Offer to Sell BTC for fiat providing fiat amount, fiat currency symbol,
-     * and any additional information needed based on type of Offer.
-     * @param e
-     */
-    private void submitSellOffer(Envelope e) {
-        String amountStr = (String)DLC.getValue("fiatAmount", e);
-        String currencyStr = (String)DLC.getValue("fiatCurrencySymbol", e);
-        String ticketNameStr = (String)DLC.getValue("ticketName", e);
-        Offer buyOffer = new Offer();
-
-        InfoVault infoVault = new InfoVault();
-    }
-
-    private void checkSellOfferStatus(Envelope e) {
-        Integer offerId = (Integer)DLC.getValue("offerId", e);
-
-        Offer offer = new Offer();
-        offer.id = offerId;
-        InfoVault infoVault = new InfoVault();
-        infoVault.content = offer;
-        infoVaultDB.load(infoVault);
-        DLC.addNVP("offer", offer.toJSON(), e);
-        if(offer.status==Offer.Status.MATCHED) {
-            Escrow escrow = new Escrow();
-            escrow.sellOfferId = offer.id;
-            InfoVault ivEscrow = new InfoVault();
-            ivEscrow.content = escrow;
-            infoVaultDB.load(ivEscrow);
-            DLC.addNVP("escrow", escrow.toJSON(), e);
-        }
     }
 
     private void fundEscrow(Envelope e) {
@@ -270,7 +206,7 @@ public class EscrowService extends BaseService {
         InfoVault infoVault = new InfoVault();
     }
 
-    private void verifyEscrowClosed(Envelope e) {
+    private void settlementVerified(Envelope e) {
         String escrowId = (String)DLC.getValue("escrowId", e);
 
         InfoVault infoVault = new InfoVault();
@@ -282,24 +218,8 @@ public class EscrowService extends BaseService {
         InfoVault infoVault = new InfoVault();
     }
 
-    private void getEscrows(Envelope e) {
-
-    }
-
     private void closeEscrow(Envelope e) {
         String escrowId = (String)DLC.getValue("escrowId", e);
-
-        InfoVault infoVault = new InfoVault();
-    }
-
-    private void getDistributableRevenue(Envelope e) {
-
-    }
-
-    private void distributeRevenue(Envelope e) {
-        String btcAmountSatsStr = (String)DLC.getValue("btcAmountSats", e);
-        String btcAddress1 = (String)DLC.getValue("btcAddress1", e);
-        String btcAddress2 = (String)DLC.getValue("btcAddress2", e);
 
         InfoVault infoVault = new InfoVault();
     }
@@ -329,6 +249,9 @@ public class EscrowService extends BaseService {
             if(!infoVaultDB.load(iv)) {
                 config.updateFromProperties(p);
                 infoVaultDB.save(iv);
+                // TODO: Now request Config from a seed with Escrow Service available
+                Envelope e = Envelope.documentFactory();
+
             }
             LOG.info("Config loaded: "+config.toJSON());
 

@@ -1,6 +1,8 @@
 # Escrow Service
 A general configurable Escrow Service.
 
+Installable within the [Service Bus](https://github.com/resolvingarchitecture/service-bus-java) project.
+
 ## Entities
 * Offer - An offer to buy or sell BTC with instructions
     * id - ID of offer
